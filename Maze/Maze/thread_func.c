@@ -6,7 +6,7 @@
 #include <time.h>
 #include <limits.h>
 
-// Å° Àü´Ş ½º·¹µå (¼öÁ¤ ºÒÇÊ¿ä, ±âÁ¸ ÄÚµå ¾çÈ£)
+// í‚¤ ì „ë‹¬ ìŠ¤ë ˆë“œ (ìˆ˜ì • ë¶ˆí•„ìš”, ê¸°ì¡´ ì½”ë“œ ì–‘í˜¸)
 void* key_deliver_thread_func(void* argument) {
     Global* g = (Global*)argument;
     int key_pressed = 0;
@@ -36,33 +36,32 @@ void* key_deliver_thread_func(void* argument) {
     return NULL;
 }
 
-// ===[¼öÁ¤µÈ °ÔÀÓ ·ÎÁ÷ ½º·¹µå]===
+// ì“°ë ˆë“œ êµ¬í˜„ ì´ëŸ°ê±° í•˜ì§€ ì•ŠëŠ”ê²Œ ì •ì‹ ì— ì´ë¡­ë‹¤
 void* game_logic_thread_func(void* argument) {
     Global* g = (Global*)argument;
     while (1) {
         int should_break = 0;
 
-        // ---[Å©¸®Æ¼ÄÃ ¼½¼Ç ½ÃÀÛ]---
-        // °øÀ¯ µ¥ÀÌÅÍ(g)¸¦ ÀĞ°í ¾²´Â ¸ğµç ·ÎÁ÷À» ÇÏ³ªÀÇ Àá±İ ºí·Ï ¾È¿¡¼­ Ã³¸®ÇÕ´Ï´Ù.
-        // ÀÌ¸¦ ÅëÇØ µ¥ÀÌÅÍÀÇ ÀÏ°ü¼ºÀ» º¸ÀåÇÕ´Ï´Ù.
+        // ê³µìœ  ë°ì´í„°(g)ë¥¼ ì½ê³  ì“°ëŠ” ëª¨ë“  ë¡œì§ì„ í•˜ë‚˜ì˜ ì ê¸ˆ ë¸”ë¡ ì•ˆì—ì„œ ì²˜ë¦¬í•©ë‹ˆë‹¤.
+        // ì´ë¥¼ í†µí•´ ë°ì´í„°ì˜ ì¼ê´€ì„±ì„ ë³´ì¥í•©ë‹ˆë‹¤.
         lock_write_lock(&g->lock);
 
-        // ÇöÀç »óÅÂ¿Í Ã³¸®ÇÒ Å°¸¦ Áö¿ª º¯¼ö·Î °¡Á®¿É´Ï´Ù.
+        // í˜„ì¬ ìƒíƒœì™€ ì²˜ë¦¬í•  í‚¤ë¥¼ ì§€ì—­ ë³€ìˆ˜ë¡œ ê°€ì ¸ì˜µë‹ˆë‹¤.
         Game_state current_state = g->game_state;
         int key_to_process = g->key;
 
-        // Å°¸¦ Ã³¸®ÇßÀ¸¹Ç·Î °øÀ¯ º¯¼ö¸¦ 0À¸·Î ¸®¼ÂÇÕ´Ï´Ù.
+        // í‚¤ë¥¼ ì²˜ë¦¬í–ˆìœ¼ë¯€ë¡œ ê³µìœ  ë³€ìˆ˜ë¥¼ 0ìœ¼ë¡œ ë¦¬ì…‹í•©ë‹ˆë‹¤.
         if (key_to_process != 0) {
             g->key = 0;
         }
 
-        // 1. »óÅÂ¿¡ µû¸¥ Å° ÀÔ·Â Ã³¸®
+        // 1. ìƒíƒœì— ë”°ë¥¸ í‚¤ ì…ë ¥ ì²˜ë¦¬
         if (current_state == GameRun) {
-            if (key_to_process == 27) { // ESC Å°
+            if (key_to_process == 27) { // ESC í‚¤
                 g->game_state = GameStop;
             }
 
-            // ¹æÇâÅ° Ã³¸® (ÇÃ·¹ÀÌ¾î ÀÌµ¿)
+            // ë°©í–¥í‚¤ ì²˜ë¦¬ (í”Œë ˆì´ì–´ ì´ë™)
             switch (key_to_process) {
             case 72: move_maze(g, 0); break; // UP
             case 80: move_maze(g, 1); break; // DOWN
@@ -90,11 +89,11 @@ void* game_logic_thread_func(void* argument) {
             }
         }
 
-        // 2. °ÔÀÓ ·ÎÁ÷ ¾÷µ¥ÀÌÆ® (GameRun »óÅÂÀÏ ¶§¸¸)
+        // 2. ê²Œì„ ë¡œì§ ì—…ë°ì´íŠ¸ (GameRun ìƒíƒœì¼ ë•Œë§Œ)
         if (g->game_state == GameRun) {
             long long current_time = get_current_time_ms();
 
-            // ¸ó½ºÅÍ ÀÌµ¿
+            // ëª¬ìŠ¤í„° ì´ë™
             for (int i = 0; i < g->monster_cnt; i++) {
                 if (g->monsters[i].move.speed <= 0) continue;
                 long move_interval = 1000 / g->monsters[i].move.speed;
@@ -108,7 +107,7 @@ void* game_logic_thread_func(void* argument) {
                 }
             }
 
-            // Ãâ±¸ ÀÌµ¿
+            // ì¶œêµ¬ ì´ë™
             if (g->exit->speed > 0) {
                 long exit_move_interval = 1000 / g->exit->speed;
                 if (current_time - g->exit->last_move_time > exit_move_interval) {
@@ -121,7 +120,7 @@ void* game_logic_thread_func(void* argument) {
                 }
             }
 
-            // Ãæµ¹ Ã³¸®: ¸ó½ºÅÍ
+            // ì¶©ëŒ ì²˜ë¦¬: ëª¬ìŠ¤í„°
             for (int i = 0; i < g->monster_cnt; i++) {
                 if (g->player->pos.x == g->monsters[i].move.pos.x && g->player->pos.y == g->monsters[i].move.pos.y) {
                     g->player->hp -= g->monsters[i].attack;
@@ -131,7 +130,7 @@ void* game_logic_thread_func(void* argument) {
                 }
             }
 
-            // Ãæµ¹ Ã³¸®: ¾ÆÀÌÅÛ
+            // ì¶©ëŒ ì²˜ë¦¬: ì•„ì´í…œ
             Item* current_item = g->item_list_h;
             Item* prev_item = NULL;
             while (current_item != NULL) {
@@ -158,32 +157,32 @@ void* game_logic_thread_func(void* argument) {
                 }
             }
 
-            // Ãæµ¹ Ã³¸®: Ãâ±¸
+            // ì¶©ëŒ ì²˜ë¦¬: ì¶œêµ¬
             if (g->player->pos.x == g->exit->pos.x && g->player->pos.y == g->exit->pos.y) {
                 g->game_state = LevelUp;
             }
         }
 
-        // 3. ·çÇÁ Á¾·á Á¶°Ç È®ÀÎ
+        // 3. ë£¨í”„ ì¢…ë£Œ ì¡°ê±´ í™•ì¸
         if (g->game_state == GameOver || g->game_state == LevelUp) {
             should_break = 1;
         }
 
-        // ---[Å©¸®Æ¼ÄÃ ¼½¼Ç Á¾·á]---
-        // ¸ğµç °øÀ¯ µ¥ÀÌÅÍ Á¢±ÙÀÌ ³¡³µÀ¸¹Ç·Î Àá±İÀ» ÇØÁ¦ÇÕ´Ï´Ù.
+        // ---[í¬ë¦¬í‹°ì»¬ ì„¹ì…˜ ì¢…ë£Œ]---
+        // ëª¨ë“  ê³µìœ  ë°ì´í„° ì ‘ê·¼ì´ ëë‚¬ìœ¼ë¯€ë¡œ ì ê¸ˆì„ í•´ì œí•©ë‹ˆë‹¤.
         lock_write_unlock(&g->lock);
 
-        // ·çÇÁ¸¦ Å»ÃâÇØ¾ß ÇÑ´Ù¸é break
+        // ë£¨í”„ë¥¼ íƒˆì¶œí•´ì•¼ í•œë‹¤ë©´ break
         if (should_break) {
             break;
         }
 
-        // Àá±İÀÌ ÇØÁ¦µÈ »óÅÂ¿¡¼­ sleepÀ» È£ÃâÇÕ´Ï´Ù.
-        // ÀÌ ½Ã°£ µ¿¾È ´Ù¸¥ ½º·¹µå(draw_thread)°¡ ¿øÈ°ÇÏ°Ô µ¿ÀÛÇÒ ¼ö ÀÖ½À´Ï´Ù.
-        mysleep(16); // ¾à 60 FPS
+        // ì ê¸ˆì´ í•´ì œëœ ìƒíƒœì—ì„œ sleepì„ í˜¸ì¶œí•©ë‹ˆë‹¤.
+        // ì´ ì‹œê°„ ë™ì•ˆ ë‹¤ë¥¸ ìŠ¤ë ˆë“œ(draw_thread)ê°€ ì›í™œí•˜ê²Œ ë™ì‘í•  ìˆ˜ ìˆìŠµë‹ˆë‹¤.
+        mysleep(16); // ì•½ 60 FPS
     }
 
-    // °ÔÀÓ ·çÇÁ°¡ Á¾·áµÈ ÈÄ, ´Ù¸¥ ½º·¹µåµéµµ È®½ÇÈ÷ Á¾·áµÇµµ·Ï »óÅÂ¸¦ ÀüÆÄÇÕ´Ï´Ù.
+    // ê²Œì„ ë£¨í”„ê°€ ì¢…ë£Œëœ í›„, ë‹¤ë¥¸ ìŠ¤ë ˆë“œë“¤ë„ í™•ì‹¤íˆ ì¢…ë£Œë˜ë„ë¡ ìƒíƒœë¥¼ ì „íŒŒí•©ë‹ˆë‹¤.
     lock_write_lock(&g->lock);
     if (g->game_state != LevelUp) {
         g->game_state = GameOver;
@@ -208,8 +207,8 @@ void* draw_thread_func(void* argument) {
         }
 
         if (current_state == GameRun) {
-            clear_back_buffer(g); // 1. ¹é¹öÆÛ ºñ¿ì±â
-            // 2. ¹é¹öÆÛ¿¡ ¸ğµç ¿ä¼Ò ±×¸®±â
+            clear_back_buffer(g); // 1. ë°±ë²„í¼ ë¹„ìš°ê¸°
+            // 2. ë°±ë²„í¼ì— ëª¨ë“  ìš”ì†Œ ê·¸ë¦¬ê¸°
             draw_maze(g);
             draw_items(g);
             draw_exit(g);
@@ -218,15 +217,16 @@ void* draw_thread_func(void* argument) {
         }
         lock_read_unlock(&g->lock);
 
-        // 3. ·»´õ¸µ (¶ô ¿ÜºÎ¿¡¼­ ¼öÇà)
+        // 3. ë Œë”ë§ (ë½ ì™¸ë¶€ì—ì„œ ìˆ˜í–‰)
         if (current_state == GameRun) {
             render_frame(g);
         }
         else if (current_state == GameStop) {
-            draw_game_drop(g); // GameStopÀº ÀüÃ¼ È­¸éÀ» µ¤À¸¹Ç·Î Á÷Á¢ ±×¸²
+            draw_game_drop(g); // GameStopì€ ì „ì²´ í™”ë©´ì„ ë®ìœ¼ë¯€ë¡œ ì§ì ‘ ê·¸ë¦¼
         }
 
-        mysleep(33); // ¾à 30 FPS
+        mysleep(33); // ì•½ 30 FPS
     }
     return NULL;
+
 }
